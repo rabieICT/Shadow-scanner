@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#030914">
+  <title>Shadow Scanner</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css">
+  <script src="config.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <!-- Sign in: email, then the 6-digit code Supabase emails (only whitelisted accounts can get one). -->
+  <main class="login" id="login" hidden>
+    <h1>Shadow Scanner</h1>
+    <p class="muted">BIS badge check-in</p>
+    <form id="email-form">
+      <label for="email">Email of this phone's account</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <button>Send me a code</button>
+    </form>
+    <form id="code-form" hidden>
+      <label for="code">6-digit code from the email</label>
+      <input id="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required>
+      <button>Sign in</button>
+      <button type="button" class="link" id="back">Use another email</button>
+    </form>
+    <p class="msg" id="login-msg" role="alert"></p>
+  </main>
+
+  <!-- Scanner: camera full screen, result card at the bottom. -->
+  <main class="scan" id="scan" hidden>
+    <video id="video" playsinline muted></video>
+    <div class="frame" aria-hidden="true"></div>
+    <header class="bar">
+      <span id="device" class="chip"></span>
+      <span class="chip" id="today" title="Scans on this phone today">0 today</span>
+      <span class="chip" id="pending" title="Waiting to upload" hidden></span>
+      <button class="chip" id="menu-btn" aria-label="Menu">☰</button>
+    </header>
+    <section class="result" id="result" aria-live="assertive">
+      <b id="r-name">Ready</b>
+      <span id="r-line">Show a badge to the camera</span>
+    </section>
+    <p class="msg cam-msg" id="cam-msg" role="alert"></p>
+    <dialog id="menu">
+      <form method="dialog" class="menu">
+        <p class="muted" id="who"></p>
+        <label for="manual">Type a code (e.g. ALG-0042)</label>
+        <div class="row"><input id="manual" autocapitalize="characters" autocomplete="off"><button id="manual-go" value="manual">Check in</button></div>
+        <label for="device-name">Name of this phone</label>
+        <div class="row"><input id="device-name" maxlength="40" placeholder="Algiers gate"><button value="device">Save</button></div>
+        <button value="refresh">Reload the lists</button>
+        <button value="signout" class="danger">Sign out</button>
+        <button value="close" class="link">Close</button>
+        <p class="muted" id="roster-info"></p>
+      </form>
+    </dialog>
+  </main>
+</body>
+</html>

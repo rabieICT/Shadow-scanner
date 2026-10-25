@@ -1,0 +1,36 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #030914; color: #e6f1ff; font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+[hidden] { display: none !important; }
+button, input { font: inherit; }
+button { border: 1px solid rgba(34, 211, 238, .6); background: rgba(34, 211, 238, .18); color: #e6f1ff; border-radius: 12px; padding: 12px 16px; cursor: pointer; }
+button.link { background: none; border: 0; color: #7dd3fc; text-decoration: underline; }
+button.danger { border-color: rgba(248, 113, 113, .6); background: rgba(248, 113, 113, .15); }
+input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #1e3a5f; background: #07142a; color: #e6f1ff; }
+.muted { color: #8aa0bf; margin: 0; font-size: .9rem; }
+.msg { min-height: 1.4em; color: #fca5a5; }
+
+.login { max-width: 420px; margin: 0 auto; padding: 12vh 24px 24px; display: flex; flex-direction: column; gap: 12px; }
+.login h1 { margin: 0; font-size: 1.8rem; letter-spacing: .04em; color: #22d3ee; }
+.login form { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+
+.scan { position: fixed; inset: 0; overflow: hidden; }
+#video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #000; }
+.frame { position: absolute; left: 50%; top: 42%; width: min(68vw, 320px); aspect-ratio: 1; transform: translate(-50%, -50%);
+  border: 3px solid rgba(34, 211, 238, .9); border-radius: 22px; box-shadow: 0 0 0 100vmax rgba(3, 9, 20, .45); }
+.bar { position: absolute; top: 0; left: 0; right: 0; display: flex; gap: 8px; align-items: center; padding: max(10px, env(safe-area-inset-top)) 12px 10px; }
+.chip { background: rgba(3, 9, 20, .75); border: 1px solid #1e3a5f; border-radius: 999px; padding: 6px 12px; font-size: .85rem; }
+#device { margin-right: auto; }
+#pending { color: #fbbf24; }
+.result { position: absolute; left: 12px; right: 12px; bottom: max(16px, env(safe-area-inset-bottom)); padding: 18px 20px; border-radius: 20px;
+  background: rgba(3, 9, 20, .88); border: 2px solid #1e3a5f; display: flex; flex-direction: column; gap: 4px; transition: background .12s, border-color .12s; }
+.result b { font-size: 1.6rem; line-height: 1.15; }
+.result span { color: #b6c6dd; font-size: 1.05rem; }
+.result.ok { background: rgba(5, 150, 105, .93); border-color: #34d399; }
+.result.again { background: rgba(180, 83, 9, .93); border-color: #fbbf24; }
+.result.bad { background: rgba(185, 28, 28, .93); border-color: #f87171; }
+.result.ok span, .result.again span, .result.bad span { color: #fff; }
+.cam-msg { position: absolute; top: 64px; left: 12px; right: 12px; text-align: center; }
+dialog { border: 1px solid #1e3a5f; border-radius: 18px; background: #07142a; color: #e6f1ff; width: min(92vw, 420px); padding: 18px; }
+dialog::backdrop { background: rgba(0, 0, 0, .6); }
+.menu { display: flex; flex-direction: column; gap: 10px; }
+.menu .row { display: flex; gap: 8px; }
