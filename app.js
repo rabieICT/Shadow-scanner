@@ -171,6 +171,8 @@
   }
 
   // --- Camera -------------------------------------------------------------------------------
+  let facing = "user";                      // the front camera at every opening; the swap button changes it until the app closes
+
   async function startCamera() {
     if (!("BarcodeDetector" in window)) {
       return message("This browser cannot read QR codes. Open the app in Chrome, or type codes from the menu.");
@@ -178,8 +180,9 @@
     try {
       detector = detector || new BarcodeDetector({ formats: ["qr_code"] });
       const video = $("video");
+      video.classList.toggle("mirror", facing === "user");
       video.srcObject = await navigator.mediaDevices.getUserMedia({ audio: false,
-        video: { facingMode: { ideal: "user" }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+        video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } } });
       await video.play();
       running = true;
       message("");
@@ -196,6 +199,12 @@
     if (stream) stream.getTracks().forEach((t) => t.stop());
     $("video").srcObject = null;
   }
+
+  $("swap").addEventListener("click", () => {
+    facing = facing === "user" ? "environment" : "user";
+    stopCamera();
+    startCamera();
+  });
 
   async function loop() {
     if (!running) return;
