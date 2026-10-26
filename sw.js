@@ -1,5 +1,5 @@
 // Keeps the app's own files on the phone so it opens instantly and works offline (Supabase calls are never cached).
-const CACHE = "shadow-scanner-v1";
+const CACHE = "shadow-scanner-v2";
 const FILES = ["./", "index.html", "app.js", "app.css", "config.js", "manifest.webmanifest", "icon.svg"];
 
 self.addEventListener("install", (e) => e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())));

@@ -10,7 +10,7 @@
     get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } },
     set(key, value) { localStorage.setItem(key, JSON.stringify(value)); },
   };
-  const COOLDOWN = 2 * 60 * 1000;      // the same badge again within 2 minutes is not counted twice
+  const COOLDOWN = 60 * 1000;          // the same badge again within 1 minute is not counted twice (director, 2026-10-25)
   const HOLD = 2500;                   // a badge still in front of the camera is not read again for this long
   const PAGE = 1000;
 
@@ -179,7 +179,7 @@
       detector = detector || new BarcodeDetector({ formats: ["qr_code"] });
       const video = $("video");
       video.srcObject = await navigator.mediaDevices.getUserMedia({ audio: false,
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } } });
+        video: { facingMode: { ideal: "user" }, width: { ideal: 1280 }, height: { ideal: 720 } } });
       await video.play();
       running = true;
       message("");
