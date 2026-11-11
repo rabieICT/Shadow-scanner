@@ -121,6 +121,79 @@
     }
   });
 
+  // --- Today's attendance as an Excel file -------------------------------------------------------
+  // Shadow mirrors today's attendance of this school's students to Supabase at each sync (no notes). The .xlsx is
+  // written here with no library: a few XML files in a zip stored without compression. Absent red, late yellow.
+  const CRC = Array.from({ length: 256 }, (_, n) => { for (let k = 0; k < 8; k++) n = n & 1 ? 0xedb88320 ^ (n >>> 1) : n >>> 1; return n >>> 0; });
+  const crc32 = (bytes) => { let c = -1; for (const b of bytes) c = CRC[(c ^ b) & 255] ^ (c >>> 8); return (c ^ -1) >>> 0; };
+
+  function zip(files) {
+    const enc = new TextEncoder(), local = [], central = [];
+    let offset = 0;
+    for (const [path, text] of files) {
+      const name = enc.encode(path), data = enc.encode(text), crc = crc32(data);
+      const head = new DataView(new ArrayBuffer(30)), dir = new DataView(new ArrayBuffer(46));
+      [[0, 0x04034b50, 4], [4, 20, 2], [6, 0x0800, 2], [12, 33, 2], [14, crc, 4], [18, data.length, 4], [22, data.length, 4], [26, name.length, 2]]
+        .forEach(([at, v, size]) => (size === 4 ? head.setUint32(at, v, true) : head.setUint16(at, v, true)));
+      [[0, 0x02014b50, 4], [4, 20, 2], [6, 20, 2], [8, 0x0800, 2], [14, 33, 2], [16, crc, 4], [20, data.length, 4], [24, data.length, 4], [28, name.length, 2], [42, offset, 4]]
+        .forEach(([at, v, size]) => (size === 4 ? dir.setUint32(at, v, true) : dir.setUint16(at, v, true)));
+      local.push(head, name, data);
+      central.push(dir, name);
+      offset += 30 + name.length + data.length;
+    }
+    const size = central.reduce((n, part) => n + part.byteLength, 0), end = new DataView(new ArrayBuffer(22));
+    [[0, 0x06054b50, 4], [8, files.length, 2], [10, files.length, 2], [12, size, 4], [16, offset, 4]]
+      .forEach(([at, v, s]) => (s === 4 ? end.setUint32(at, v, true) : end.setUint16(at, v, true)));
+    return new Blob([...local, ...central, end], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+
+  function xlsx(rows) {          // rows: [[text, style]…] — style 1 bold, 2 red, 3 yellow
+    const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const cells = rows.map((row, r) => `<row r="${r + 1}">${row.map(([text, style], c) =>
+      `<c r="${"ABCDE"[c]}${r + 1}" t="inlineStr"${style ? ` s="${style}"` : ""}><is><t>${esc(text)}</t></is></c>`).join("")}</row>`).join("");
+    const ns = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"', rel = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+    const fill = (rgb) => `<fill><patternFill patternType="solid"><fgColor rgb="${rgb}"/><bgColor indexed="64"/></patternFill></fill>`;
+    return zip([
+      ["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+      ["_rels/.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${rel}/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+      ["xl/workbook.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook ${ns} xmlns:r="${rel}"><sheets><sheet name="Attendance" sheetId="1" r:id="rId1"/></sheets></workbook>`],
+      ["xl/_rels/workbook.xml.rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${rel}/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="${rel}/styles" Target="styles.xml"/></Relationships>`],
+      ["xl/styles.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet ${ns}><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>${fill("FFFCA5A5")}${fill("FFFDE68A")}</fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="2" borderId="0" xfId="0" applyFill="1"/><xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1"/></cellXfs></styleSheet>`],
+      ["xl/worksheets/sheet1.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet ${ns}><sheetViews><sheetView workbookViewId="0"><pane ySplit="2" topLeftCell="A3" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols><col min="1" max="1" width="34" customWidth="1"/><col min="2" max="4" width="11" customWidth="1"/><col min="5" max="5" width="22" customWidth="1"/></cols><sheetData>${cells}</sheetData></worksheet>`],
+    ]);
+  }
+
+  $("download").addEventListener("click", async () => {
+    const out = $("download-msg");
+    out.className = "msg";
+    out.textContent = "Preparing…";
+    try {
+      const rows = await api("/rest/v1/today_attendance?select=school,day,name,grp,arrival,leaving,status,updated_at&order=grp.asc,name.asc&limit=2000") || [];
+      if (!rows.length) {
+        out.className = "msg bad";
+        out.textContent = "No attendance for today yet: Shadow sends it every few minutes while it is running.";
+        return;
+      }
+      const at = rows.reduce((m, r) => (r.updated_at > m ? r.updated_at : m), ""), time = at ? new Date(at).toTimeString().slice(0, 5) : "";
+      const style = (s) => (s.startsWith("Absent") ? 2 : s.includes("Late") ? 3 : 0);
+      const blob = xlsx([
+        [[`${schoolName(rows[0].school)} · students' attendance · ${rows[0].day}${time ? ` · Shadow's figures as of ${time}` : ""}`, 1]],
+        ["Name", "Class", "Arrival", "Leaving", "Status"].map((h) => [h, 1]),
+        ...rows.map((r) => [[r.name], [r.grp], [r.arrival], [r.leaving], [r.status, style(r.status)]]),
+      ]);
+      const link = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `attendance-${rows[0].school}-${rows[0].day}.xlsx` });
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(link.href), 5000);
+      out.className = "msg ok";
+      out.textContent = `Downloaded: ${rows.length} students${time ? `, Shadow's figures as of ${time}` : ""}.`;
+    } catch (err) {
+      out.className = "msg bad";
+      out.textContent = err.status === 401 ? "Please sign in again." : `Could not download (${err.message}).`;
+    }
+  });
+
   // --- Screens ---------------------------------------------------------------------------------
   function signOut(text = "") {
     session = null;

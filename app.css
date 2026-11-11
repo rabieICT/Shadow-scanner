@@ -56,3 +56,4 @@ select { font: inherit; width: 100%; padding: 12px; border-radius: 12px; border:
 .ent-list li.ok { border-color: rgba(52, 211, 153, .6); }
 .ent-list li.bad { border-color: rgba(248, 113, 113, .6); }
 .ent-list li.wait { border-color: rgba(251, 191, 36, .5); }
+.ent-today > button { width: 100%; }
