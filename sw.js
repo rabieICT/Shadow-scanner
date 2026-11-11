@@ -1,6 +1,6 @@
 // Keeps the app's own files on the phone so it opens instantly and works offline (Supabase calls are never cached).
-const CACHE = "shadow-scanner-v4";
-const FILES = ["./", "index.html", "app.js", "app.css", "config.js", "manifest.webmanifest", "icon.svg"];
+const CACHE = "shadow-scanner-v7";
+const FILES = ["./", "index.html", "app.js", "app.css", "config.js", "manifest.webmanifest", "icon.svg", "entries.html", "entries.js", "entries.webmanifest"];
 
 // "reload" / "no-cache" skip the browser's own HTTP cache, so GitHub Pages' short cache can't hand back an old app.js.
 self.addEventListener("install", (e) => e.waitUntil(

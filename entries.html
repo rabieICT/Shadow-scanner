@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#030914">
+  <title>Shadow · Forgot badge</title>
+  <link rel="manifest" href="entries.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="app.css">
+  <script src="config.js" defer></script>
+  <script src="entries.js" defer></script>
+</head>
+<body>
+  <!-- Sign in: email, then the 6-digit code Supabase emails (only accounts the director allowed in Shadow). -->
+  <main class="login" id="login" hidden>
+    <h1>Forgot badge</h1>
+    <p class="muted">BIS head management team · students who came without their badge</p>
+    <form id="email-form">
+      <label for="email">Your email</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <button>Send me a code</button>
+    </form>
+    <form id="code-form" hidden>
+      <label for="code">6-digit code from the email</label>
+      <input id="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6,10}" required>
+      <button>Sign in</button>
+      <button type="button" class="link" id="back">Use another email</button>
+    </form>
+    <p class="msg" id="login-msg" role="alert"></p>
+  </main>
+
+  <!-- One entry: a student of this account's school, arrival or leaving, the time, an optional comment. -->
+  <main class="entries" id="main" hidden>
+    <header class="ent-head">
+      <div><h1>Forgot badge</h1><p class="muted"><span id="school"></span> <span id="who"></span></p></div>
+      <button type="button" class="link" id="signout">Sign out</button>
+    </header>
+    <p class="msg" id="stopped" role="alert" hidden></p>
+    <form id="entry" class="ent-form">
+      <label for="klass">Class</label>
+      <select id="klass"><option value="">All classes</option></select>
+      <label for="find">Search a name</label>
+      <input id="find" type="search" autocomplete="off" placeholder="Type part of the name">
+      <label for="student">Student</label>
+      <select id="student" required><option value="">Choose a student</option></select>
+      <fieldset class="seg"><legend>Arrival or leaving</legend>
+        <label><input type="radio" name="direction" value="arrival" checked> Arrival</label>
+        <label><input type="radio" name="direction" value="leaving"> Leaving</label>
+      </fieldset>
+      <label for="hhmm">Time</label>
+      <input id="hhmm" type="time" required>
+      <label for="note">Comment (optional)</label>
+      <input id="note" maxlength="200" autocomplete="off" placeholder="e.g. came with a parent">
+      <button id="save">Save</button>
+      <p class="msg" id="msg" role="status"></p>
+    </form>
+    <section class="ent-today">
+      <h2>Today's entries</h2>
+      <ul class="ent-list" id="today"><li class="muted">None yet.</li></ul>
+    </section>
+  </main>
+</body>
+</html>

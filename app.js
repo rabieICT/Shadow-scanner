@@ -65,7 +65,7 @@
 
   async function loadRoster() {
     const [people, badges] = await Promise.all([
-      getAll("/rest/v1/people?select=code,school,kind,name,grp&active=is.true&order=code"),
+      getAll("/rest/v1/people?select=code,school,kind,name,grp,active&order=code"),
       getAll("/rest/v1/badges?select=value,code&order=value"),
     ]);
     roster = { people: Object.fromEntries(people.map((p) => [p.code, p])), badges: Object.fromEntries(badges.map((b) => [b.value, b.code])), at: Date.now() };
@@ -148,6 +148,14 @@
       beep("again");
       return show("again", person ? person.name : "Unknown badge", `Already scanned at ${time(new Date(recent[key]))}`);
     }
+    if (person && person.active === false) {          // left the school (archived): refused, nothing is saved or sent
+      beep("bad");
+      return show("bad", person.name, "Left the school. Not recorded.");
+    }
+    if (person && typed && !roster.badges[value] && person.kind === "staff") {   // only the director changes staff times
+      beep("bad");
+      return show("bad", person.name, "Staff must scan their own badge. Not recorded.");
+    }
     if (!person && typed) {
       beep("bad");
       return show("bad", "Code not found", `${value} is not in the lists (reload the lists from the menu?)`);
@@ -166,7 +174,7 @@
     }
     beep("ok");
     countToday();
-    const group = person.kind === "staff" ? (person.grp || "Staff") : (person.grp ? `Class ${person.grp}` : "Student");
+    const group = person.kind === "visitors" ? "Visitor badge" : person.kind === "staff" ? (person.grp || "Staff") : (person.grp ? `Class ${person.grp}` : "Student");
     show("ok", person.name, `${group} · ${person.code} · ${schoolName(person.school)} · ${time(new Date(now))}`);
   }
 
