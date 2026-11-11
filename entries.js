@@ -58,9 +58,11 @@
   }
 
   async function loadStudents() {
-    students = await api("/rest/v1/people?select=code,school,name,grp&kind=eq.students&active=is.true&order=name&limit=2000") || [];
-    if (!students.length) return stopped("This account has no access now. Ask the director (it may have been stopped).");
-    if (new Set(students.map((p) => p.school)).size > 1) return stopped("This is a gate phone account, not a forgot-badge account.");
+    // The account's school comes from Supabase: an email that is also a gate phone can read every school's list.
+    const school = await api("/rest/v1/rpc/manager_school", { method: "POST", body: {} });
+    if (!school) return stopped("This account has no access now. Ask the director (it may have been stopped).");
+    students = await api(`/rest/v1/people?select=code,school,name,grp&kind=eq.students&active=is.true&school=eq.${encodeURIComponent(school)}&order=name&limit=2000`) || [];
+    if (!students.length) return stopped("No students found for this school yet. Ask the director.");
     $("stopped").hidden = true;
     $("entry").hidden = false;
     $("school").textContent = schoolName(students[0].school);
